@@ -20,16 +20,17 @@ def get_sql_questions():
     prompt = """
         You are an expert SQL instructor. Generate 2 medium-hard SQL practice questions. 
         Format the entire response in clean, well-structured HTML so it looks professional in an email. Use inline CSS.
-    
+        
         1. Use an HTML table for the dataset schema.
         2. Use <h3> tags for the question titles.
         3. Include a small, subtle "Hint" section for each question.
         4. Do NOT provide the answers.
         5. Provide the full SQL setup script (CREATE TABLE and INSERT statements) inside a visually distinct <pre style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;"> block.
-        6. Beneath each question, create a "Discuss with Gemini" section.
-        7. CRITICAL: In this section, you MUST include a functional HTML hyperlink using exactly this format: <a href="https://gemini.google.com" target="_blank" style="color: #ffffff; background-color: #1a73e8; padding: 8px 15px; text-decoration: none; border-radius: 5px; display: inline-block; margin-bottom: 10px;">💬 Click here to open Gemini AI</a>
-        8. Below the button, provide a pre-written prompt inside a <pre style="background-color: #e8f0fe; padding: 10px; border-left: 4px solid #1a73e8; white-space: pre-wrap;"> block. The prompt should include the schema context and the question, asking Gemini to act as a tutor to help find mistakes without giving the final answer.
-    
+        6. Beneath each question, create a "Discuss with AI" section.
+        7. CRITICAL: In this section, create a dynamic link to ChatGPT that pre-fills the prompt. The URL must be formatted exactly as: https://chatgpt.com/?q=[YOUR_ENCODED_PROMPT]
+        8. The prompt to encode should be exactly this context: "I am trying to solve this SQL problem: [Insert Question Here]. Here is my schema: [Insert Schema Here]. I am stuck. Can you act as my tutor and guide me toward the solution without just giving me the exact code?"
+        9. URL-encode that entire prompt string (replace spaces with %20, etc.) and place it in the href of an anchor tag styled like a green ChatGPT button: <a href="https://chatgpt.com/?q=..." target="_blank" style="color: #ffffff; background-color: #10a37f; padding: 8px 15px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">💬 Discuss with ChatGPT</a>
+        
         Return ONLY the raw HTML code. Do NOT wrap it in markdown formatting like ```html.
     """
 
