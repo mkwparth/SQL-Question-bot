@@ -35,7 +35,7 @@ def get_sql_questions():
     """
 
     response = client.models.generate_content(
-        model="gemini-3-flash-preview",
+        model="gemini-3-flash",
         contents=prompt
     )
 
