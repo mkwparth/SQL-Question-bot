@@ -3,6 +3,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google import genai
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -41,6 +42,44 @@ def get_sql_questions():
     html_content = response.text.replace('```html', '').replace('```', '').strip()
     return html_content
 
+def get_sql_questions_from_chatGPT():
+    """Ask Gemini for HTML formatted SQL questions."""
+    
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    prompt = """
+        You are an expert SQL instructor.
+
+        Generate 2 medium-hard SQL practice questions.
+
+        Return clean HTML formatted for email.
+
+        Requirements:
+
+        1 Use an HTML table for schema
+        2 Use <h3> for question title
+        3 Include small Hint section
+        4 Do NOT give answers
+        5 Provide SQL setup script in a styled <pre> block
+        6 Add a "Discuss with ChatGPT" section
+
+        In this section include this button:
+
+        <a href="https://chat.openai.com/?q=SQL%20question%20help" target="_blank"
+        style="color:#ffffff;background:#10a37f;padding:8px 15px;text-decoration:none;border-radius:5px;">
+        💬 Discuss with ChatGPT
+        </a>
+
+        Below the button include a <pre> block containing a prompt the user can copy that asks ChatGPT to help debug their SQL without revealing the answer.
+        """
+
+    response = client.responses.create(
+        model="gpt-5-mini",
+        input=prompt
+    )
+
+    return response.output_text
+
 
 def send_email(html_content):
     """Sends the HTML content as an email."""
@@ -60,11 +99,15 @@ def send_email(html_content):
 
 if __name__ == "__main__":
     try:
-        print("Fetching questions from Gemini...")
-        daily_questions_html = get_sql_questions()
+        # print("Fetching questions from Gemini...")
+        # daily_questions_html = get_sql_questions()
 
-        print("Sending to Email...")
-        send_email(daily_questions_html)   
+        # print("Sending to Email...")
+        # send_email(daily_questions_html)   
 
+        daily_questions_html = get_sql_questions_from_chatGPT()
+
+        with open("index.html", 'w') as file:
+            file.write(daily_questions_html)
     except Exception as e:
         print(f"An error occurred: {e}")
