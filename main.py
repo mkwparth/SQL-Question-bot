@@ -4,6 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google import genai
 from dotenv import load_dotenv
+from datetime import datetime 
 
 load_dotenv()
 
@@ -45,9 +46,11 @@ def get_sql_questions():
 
 def send_email(html_content):
     """Sends the HTML content as an email."""
+    today_date = datetime.now().strftime("%b %d, %Y")
+
     msg = MIMEMultipart('alternative')
-    msg['Subject'] = "Your Daily SQL Practice Questions 🚀"
-    msg['From'] = SENDER_EMAIL
+    msg['Subject'] = f"Daily SQL Practice 🚀 - {today_date}"
+    msg['From'] = f"Your-SQL-AI-Mentor <{SENDER_EMAIL}>"
     msg['To'] = RECEIVER_EMAIL
 
     part = MIMEText(html_content, 'html')
