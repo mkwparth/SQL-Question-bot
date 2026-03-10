@@ -1,5 +1,6 @@
 import os
 import smtplib
+import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
@@ -14,6 +15,8 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 RECEIVER_EMAIL = os.environ.get("RECEIVER_EMAIL")
+
+MAX_RETRY_WINDOW_SECONDS = 300  # 5 minutes
 
 
 def get_sql_questions():
@@ -46,16 +49,35 @@ def get_sql_questions():
         }
     """
 
-    response = client.models.generate_content(
-        model="gemini-3-flash-preview", 
-        contents=prompt,
-        config=genai.types.GenerateContentConfig(
-            response_mime_type="application/json",
-        )
-    )
+    deadline = time.monotonic() + MAX_RETRY_WINDOW_SECONDS
+    backoff_seconds = 1
+    last_error = None
 
-    # Convert the JSON string into a Python dictionary
-    return json.loads(response.text)
+    while time.monotonic() < deadline:
+        try:
+            response = client.models.generate_content(
+                model="gemini-3-flash-preview",
+                contents=prompt,
+                config=genai.types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                )
+            )
+
+            # Success path (Gemini SDK usually raises on non-200 responses).
+            return json.loads(response.text)
+
+        except Exception as exc:
+            last_error = exc
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+
+            wait_seconds = min(backoff_seconds, 60, remaining)
+            print(f"Gemini request failed. Retrying in {wait_seconds:.1f}s...")
+            time.sleep(wait_seconds)
+            backoff_seconds *= 2
+
+    raise RuntimeError("Gemini did not return a valid response within 5 minutes. Failing workflow.") from last_error
 
 
 def send_email(html_content, sql_content):
